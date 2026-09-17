@@ -67,8 +67,80 @@ The backend expects a SQL Server instance reachable at the host configured in `.
 ```
 cd frontend
 npm install
+copy .env.example .env   # VITE_API_BASE_URL defaults to http://127.0.0.1:8000/api
 npm run dev
 ```
+
+The dev server runs at `http://localhost:5173`. The backend's CORS config
+(`backend/config/cors.php`) explicitly allows `http://localhost:5173` and
+`http://127.0.0.1:5173` — not a wildcard — since the frontend needs to send
+an `Authorization: Bearer <token>` header cross-origin.
+
+### Windows note: multipart image uploads via `php artisan serve`
+
+If your Windows user folder name contains a non-ASCII character (e.g. a
+Turkish İ/ı/ş/ğ), PHP's built-in dev server can fail image uploads with
+*"unable to create a temporary file"*, because it resolves the OS temp
+directory through that same non-ASCII path. This is a local PHP/OS quirk,
+not an application bug — the code never assumes anything about the temp
+directory. If you hit this, start the server pointed at any ASCII-only
+temp folder instead of `php artisan serve`:
+
+```
+mkdir C:\phptemp        REM any ASCII-only folder works, created outside the repo
+cd backend\public
+php -d upload_tmp_dir=C:\phptemp -S 127.0.0.1:8000 ..\vendor\laravel\framework\src\Illuminate\Foundation\resources\server.php
+```
+
+No application code, config file, or committed path depends on `C:\phptemp` —
+it's purely a local `php -d` flag you pass yourself, so nothing machine-specific
+is ever checked in.
+
+## Frontend features (Phase 3)
+
+React + TypeScript, plain custom CSS (no UI framework), React Router,
+Axios, `lucide-react` icons. All screens consume the real backend API —
+nothing is hardcoded or mocked.
+
+**Customer** (public + `role: customer`)
+- Catalog (`/`) with search, category/price/in-stock filters, pagination
+- Product detail (`/products/:id`) with image gallery and quantity selector
+- Cart (`/cart`) — client-side only (localStorage), display totals are
+  estimates; order creation (`POST /api/orders`) is what actually prices
+  and validates everything server-side
+- Order creation from the cart page (note field only — no payment/shipping
+  fields exist anywhere in the UI)
+- Own orders list/detail (`/orders`, `/orders/:id`) with Turkish status
+  labels (Sipariş Alındı / Hazırlanıyor / Tamamlandı / İptal Edildi)
+
+**Seller / İş Yeri** (`/seller`, `role: seller`)
+- Dashboard: product/order counts derived from the real list endpoints
+  (no separate stats endpoint was added)
+- Product list with search/category/status filters, create/edit/soft-delete
+- Product image management: upload (jpg/jpeg/png/webp, 5MB max, with a
+  local preview before upload), set primary, edit alt text, delete (with
+  primary auto-promotion mirroring the backend rule)
+- Orders: only order items belonging to the seller's own business are ever
+  shown; status actions are limited to the backend's allowed transitions
+  (`received→preparing→completed`, cancel from either), with a confirmation
+  dialog before cancelling
+
+**Admin / Yönetici** (`/admin`, `role: admin`)
+- Dashboard: user/business/category/product/order totals from the real
+  paginated endpoints
+- Users: list/search/filter, create/edit (role, business assignment,
+  password reset), self-deactivate/self-demote disabled in the UI as a
+  convenience (the backend enforces this regardless)
+- Businesses & Categories: list/search/filter, create/edit,
+  activate/deactivate — no hard-delete button exists
+- Products: read-only inspection across every business, with a "show
+  deleted" toggle
+- Orders: read-only inspection with detail view (customer, all items,
+  business names, snapshots, statuses, total)
+
+Role-based routing (`RoleRoute`/`ProtectedRoute`) is a UX convenience only
+— a customer is redirected away from `/admin`, etc. — the Laravel backend
+remains the actual security boundary for every request.
 
 ## Backend API (Phase 2)
 
@@ -111,4 +183,6 @@ Product images are uploaded through `multipart/form-data` (`image` field, jpg/jp
 
 ## Status
 
-Phase 1 (foundation, schema, authentication) and Phase 2 (complete backend/API — admin, seller, and customer functionality, image uploads, order lifecycle) are complete. The React admin/seller/storefront UI is implemented in Phase 3.
+Phase 1 (foundation, schema, authentication), Phase 2 (complete backend/API),
+and Phase 3 (complete React + TypeScript frontend — customer storefront,
+seller panel, admin panel) are complete. GitHub publishing happens in Phase 4.
