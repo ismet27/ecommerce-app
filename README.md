@@ -50,17 +50,45 @@ Also seeded: one demo business ("Tekno Mağaza"), 4 categories, and 12 demo prod
 
 ## Backend setup
 
-```
-cd backend
-composer install
-copy .env.example .env   # then fill in local DB connection details
-php artisan key:generate
-php artisan storage:link
-php artisan migrate:fresh --seed
-php artisan serve
-```
+Prerequisites: PHP 8.3+ with the `sqlsrv`/`pdo_sqlsrv` extensions, Composer,
+and a running SQL Server instance (this project was built and tested
+against SQL Server Express, instance `(local)\SQLEXPRESS`, using **Windows
+Integrated Authentication** — no SQL login/password needed).
 
-The backend expects a SQL Server instance reachable at the host configured in `.env` (Windows Integrated Authentication is used by default, so no DB username/password is required locally).
+1. Create the database (safe to re-run):
+
+   ```
+   sqlcmd -S "(local)\SQLEXPRESS" -E -C -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'ecommerce_app') CREATE DATABASE ecommerce_app;"
+   ```
+
+2. Install dependencies and configure the app:
+
+   ```
+   cd backend
+   composer install
+   copy .env.example .env
+   php artisan key:generate
+   ```
+
+   `backend/.env.example` already defaults `DB_HOST` to `(local)\SQLEXPRESS`
+   and `DB_DATABASE` to `ecommerce_app` with empty `DB_USERNAME`/`DB_PASSWORD`
+   (Windows Integrated Authentication). If your SQL Server instance name or
+   auth method differs, adjust those values in `.env` only — never commit them.
+
+3. Run migrations, seed demo data, and link storage:
+
+   ```
+   php artisan migrate:fresh --seed
+   php artisan storage:link
+   ```
+
+4. Start the backend:
+
+   ```
+   php artisan serve
+   ```
+
+   The API is now reachable at `http://127.0.0.1:8000` (health check: `/up`).
 
 ## Frontend setup
 
@@ -95,6 +123,14 @@ php -d upload_tmp_dir=C:\phptemp -S 127.0.0.1:8000 ..\vendor\laravel\framework\s
 No application code, config file, or committed path depends on `C:\phptemp` —
 it's purely a local `php -d` flag you pass yourself, so nothing machine-specific
 is ever checked in.
+
+### Local URLs
+
+| Service  | URL                          |
+|----------|------------------------------|
+| Frontend | http://localhost:5173        |
+| Backend  | http://127.0.0.1:8000        |
+| Backend health check | http://127.0.0.1:8000/up |
 
 ## Frontend features (Phase 3)
 
@@ -183,6 +219,6 @@ Product images are uploaded through `multipart/form-data` (`image` field, jpg/jp
 
 ## Status
 
-Phase 1 (foundation, schema, authentication), Phase 2 (complete backend/API),
-and Phase 3 (complete React + TypeScript frontend — customer storefront,
-seller panel, admin panel) are complete. GitHub publishing happens in Phase 4.
+Complete: foundation & schema, full backend API, complete React + TypeScript
+frontend (customer storefront, seller panel, admin panel), and final QA.
+Published to GitHub.
