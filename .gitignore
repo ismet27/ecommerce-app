@@ -1,0 +1,21 @@
+# Backend (Laravel)
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/vendor/
+
+# Frontend (React + Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Tooling / local scratch
+.tools/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
