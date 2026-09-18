@@ -132,7 +132,7 @@ is ever checked in.
 | Backend  | http://127.0.0.1:8000        |
 | Backend health check | http://127.0.0.1:8000/up |
 
-## Frontend features (Phase 3)
+## Frontend features
 
 React + TypeScript, plain custom CSS (no UI framework), React Router,
 Axios, `lucide-react` icons. All screens consume the real backend API —
@@ -178,7 +178,7 @@ Role-based routing (`RoleRoute`/`ProtectedRoute`) is a UX convenience only
 — a customer is redirected away from `/admin`, etc. — the Laravel backend
 remains the actual security boundary for every request.
 
-## Backend API (Phase 2)
+## Backend API
 
 All endpoints are versionless JSON under `/api`, authenticated with a Sanctum bearer token (`Authorization: Bearer <token>`) except the public catalog and `/api/login`.
 
